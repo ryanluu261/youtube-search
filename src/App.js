@@ -1,26 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {Component} from 'react';
 import './App.css';
+import SearchBar from './components/search_bar';
+import youtubeSearch from './youtube-api';
+import VideoList from './components/video_list';
+import VideoDetail from './components/video_detail';
+import debounce from 'lodash.debounce';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      videos: [],
+      selectedVideo: null,
+    };
+    this.search = debounce(this.search, 300)
+    this.search('pixar')
+  }
+
+  search = (text) => {
+    youtubeSearch(text).then(videos => {
+      this.setState({
+        videos,
+        selectedVideo: videos[0],
+      });
+    });
+  }
+
+  // handleVidSelect = (selectedVideo) => {
+  //   this.setState({
+  //     selectedVideo: selectedVideo
+  //   })
+  // }
+  
+  render() {
+
+    if (!this.state.selectedVideo) {
+      return <div>Loading..</div>
+    }
+
+    return (
+      <div className="App">
+        <SearchBar id="search-bar" onChange={this.search} />
+        <div id="video-section" >
+          <VideoDetail video={this.state.selectedVideo} />
+          <VideoList onVideoSelect={(selectedVideo) => this.setState({ selectedVideo })} videos={this.state.videos} />
+        </div>
+        
+      </div>
+    );
+  }
 }
 
 export default App;
